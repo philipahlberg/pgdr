@@ -1,0 +1,7 @@
+# requires nightly
+# https://github.com/rust-lang/rustfmt/issues/5083
+group_imports = "One"
+
+# requires nightly
+# https://github.com/rust-lang/rustfmt/issues/4991
+imports_granularity = "Item"

@@ -1,0 +1,40 @@
+[settings]
+lockfile = true
+
+[tools]
+"cargo:cargo-deny"  = { version = "0.18.5" }
+"cargo:cargo-insta" = { version = "1.43.2" }
+"cargo:taplo-cli"   = { version = "0.10.0" }
+
+[env]
+_.file = ".env"
+
+[tasks.build]
+run = "cargo build --release --all-features"
+
+[tasks.test]
+run = "cargo test"
+
+[tasks.fmt]
+run = ["cargo +nightly fmt --all", "taplo fmt"]
+
+[tasks.clippy]
+run = "cargo clippy -- -D warnings"
+
+[tasks.deny]
+run = "cargo deny check advisories bans licenses"
+
+[tasks.check]
+run = "cargo check"
+
+[tasks.ci]
+depends = ["check", "fmt", "clippy", "deny"]
+
+[tasks.fix]
+run = [
+  "cargo check",
+  "cargo clippy --all-targets --fix --allow-dirty --allow-staged --no-deps",
+  "cargo +nightly fmt --all",
+  "cargo test --no-fail-fast --all-features",
+  "cargo doc",
+]

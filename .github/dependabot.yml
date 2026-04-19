@@ -1,0 +1,30 @@
+version: 2
+
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    cooldown:
+      default-days: 7
+    groups:
+      backwards-compatible:
+        applies-to: "version-updates"
+        update-types:
+          - "patch"
+          - "minor"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    cooldown:
+      default-days: 7
+    groups:
+      backwards-compatible:
+        applies-to: "version-updates"
+        update-types:
+            - "patch"
+            - "minor"

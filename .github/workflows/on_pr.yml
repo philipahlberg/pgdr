@@ -1,0 +1,12 @@
+name: on_pr
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    uses: ./.github/workflows/run_checks.yml
+
+  tests:
+    uses: ./.github/workflows/run_tests.yml

@@ -1,0 +1,96 @@
+name: run_build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  RUSTC_WRAPPER: "sccache"
+  SCCACHE_GHA_ENABLED: "true"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-msvc
+
+        include:
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-24.04
+            archive: .tar.gz
+
+          - target: aarch64-apple-darwin
+            runner: macos-26
+            archive: .tar.gz
+
+          - target: x86_64-pc-windows-msvc
+            runner: windows-2025
+            archive: .zip
+
+    runs-on: ${{ matrix.runner }}
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Rust
+      uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7 # v1.16.0
+      with:
+        target: ${{ matrix.target }}
+
+    - name: Install system packages (musl)
+      if: contains(matrix.target, 'musl')
+      run: sudo apt-get install -y --no-install-recommends clang mold musl-tools
+
+    - name: Fetch cache
+      uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad # v0.0.9
+
+    - name: Set up mise
+      uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+      with:
+        version: "2025.10.4"
+
+    - name: Build executable
+      run: cargo build --release --target ${{ matrix.target }}
+
+    - name: Build archive (linux/darwin)
+      if: contains(matrix.target, 'linux') || contains(matrix.target, 'darwin')
+      shell: bash
+      run: |
+        mkdir -p "${{ env.DIST }}"
+        cp "${{ env.BIN }}" "${{ env.DIST }}"
+        tar czf "${{ env.DIST }}${{ matrix.archive }}" "${{ env.DIST }}"
+      env:
+        BIN: target/${{ matrix.target }}/release/pgdr
+        DIST: pgdr-${{ matrix.target }}-${{ inputs.version }}
+
+    - name: Build archive (windows)
+      if: contains(matrix.target, 'windows')
+      shell: bash
+      run: |
+        mkdir -p "${{ env.DIST }}"
+        cp "${{ env.BIN }}" "${{ env.DIST }}"
+        7z a "${{ env.DIST }}${{ matrix.archive }}" "${{ env.DIST }}"
+      env:
+        BIN: target/${{ matrix.target }}/release/pgdr
+        DIST: pgdr-${{ matrix.target }}-${{ inputs.version }}
+
+    - name: Upload archive
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: "${{ env.DIST }}${{ matrix.archive }}"
+        path: "${{ env.DIST }}${{ matrix.archive }}"
+        if-no-files-found: error
+      env:
+        DIST: pgdr-${{ matrix.target }}-${{ inputs.version }}

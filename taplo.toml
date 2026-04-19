@@ -1,0 +1,30 @@
+exclude = ["target/*"]
+
+[formatting]
+column_width  = 110
+align_entries = true
+indent_string = "  "
+
+[[rule]]
+include = ["**/Cargo.toml"]
+keys = [
+  "dependencies",
+  "*-dependencies",
+  "workspace.dependencies",
+  "workspace.*-dependencies",
+  "target.*.dependencies",
+  "target.*.*-dependencies",
+]
+formatting.reorder_keys = true
+
+[[rule]]
+include = ["**/Cargo.toml"]
+keys = [
+  "dependencies.*",
+  "*-dependencies.*",
+  "workspace.dependencies.*",
+  "workspace.*-dependencies.*",
+  "target.*.dependencies",
+  "target.*.*-dependencies",
+]
+formatting.reorder_keys = true

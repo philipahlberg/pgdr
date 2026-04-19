@@ -1,0 +1,46 @@
+name: run_checks
+
+on:
+  workflow_call:
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  RUSTC_WRAPPER: "sccache"
+  SCCACHE_GHA_ENABLED: "true"
+
+jobs:
+  cargo:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install system packages
+      run: sudo apt-get install -y --no-install-recommends clang mold
+
+    - name: Install Rust
+      uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7 # v1.16.0
+      with:
+        components: rustfmt, clippy
+        toolchain: stable, nightly
+
+    - name: Fetch cache
+      uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad # v0.0.9
+
+    - name: Set up mise
+      uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+      with:
+        version: "2025.10.4"
+
+    - name: Install cargo-deny
+      run: cargo install cargo-deny --locked --version ^0.14
+
+    - name: Run cargo fmt
+      run: cargo +nightly fmt -v --all -- --check
+
+    - name: Run cargo deny check
+      run: cargo deny check bans licenses sources
+
+    - name: Run cargo clippy
+      run: cargo clippy --all-features -- -D warnings
