@@ -79,9 +79,11 @@ Lists sequences with data type, min/max values, and increment.
 
 ```sh
 pgdr function list [--schema <schema>]
+pgdr function deps <function> [--schema <schema>]
 ```
 
-Lists functions and procedures with `name`, `type`, `return_type`, and `language`.
+- `list` — functions and procedures with `name`, `type`, `return_type`, and `language`
+- `deps <function>` — objects the function depends on, each with `kind`, `schema`, and `name`. Works for both SQL-language and PL/pgSQL functions by parsing the function body via the PostgreSQL AST. `kind` is one of `function`, `table`, `view`, `materialized_view`, `sequence`, or `foreign_table`. Does not track dynamically constructed queries (e.g. `EXECUTE '...' || var`).
 
 ---
 
