@@ -1,6 +1,5 @@
-use std::collections::BTreeSet;
-
 use serde_json::Value;
+use std::collections::BTreeSet;
 
 pub(crate) fn collect_from_parse_result(
     result: &pg_query::ParseResult,

@@ -1,9 +1,11 @@
-use std::collections::{BTreeSet, HashMap};
-
-use serde_json::{json, Value};
+use crate::error::Result;
+use crate::output;
+use crate::parse;
+use serde_json::Value;
+use serde_json::json;
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 use tokio_postgres::Client;
-
-use crate::{error::Result, output, parse};
 
 const EXCLUDED: &str = "'pg_catalog', 'information_schema', 'pg_toast'";
 
@@ -53,7 +55,10 @@ impl Pattern {
                 schema: Some(schema.to_owned()),
                 name: name.to_owned(),
             },
-            None => Self { schema: None, name: s.to_owned() },
+            None => Self {
+                schema: None,
+                name: s.to_owned(),
+            },
         }
     }
 
@@ -228,16 +233,16 @@ pub async fn run(client: &Client, patterns: &[String]) -> Result<()> {
     for row in client.query(STRUCTURAL_QUERY, &[]).await? {
         edges.insert(Edge {
             dependent: Node {
-                kind:   row.get("dependent_kind"),
+                kind: row.get("dependent_kind"),
                 schema: row.get("dependent_schema"),
-                name:   row.get("dependent_name"),
-                oid:    row.get("dependent_oid"),
+                name: row.get("dependent_name"),
+                oid: row.get("dependent_oid"),
             },
             dependency: Node {
-                kind:   row.get("dependency_kind"),
+                kind: row.get("dependency_kind"),
                 schema: row.get("dependency_schema"),
-                name:   row.get("dependency_name"),
-                oid:    row.get("dependency_oid"),
+                name: row.get("dependency_name"),
+                oid: row.get("dependency_oid"),
             },
         });
     }
@@ -250,7 +255,9 @@ pub async fn run(client: &Client, patterns: &[String]) -> Result<()> {
         .iter()
         .filter(|e| {
             patterns.is_empty()
-                || patterns.iter().any(|p| p.matches(&e.dependent) || p.matches(&e.dependency))
+                || patterns
+                    .iter()
+                    .any(|p| p.matches(&e.dependent) || p.matches(&e.dependency))
         })
         .map(Edge::to_json)
         .collect();
@@ -313,7 +320,13 @@ async fn plpgsql_edges(client: &Client) -> Result<Vec<Edge>> {
 
         all_table_refs.extend(tables.iter().cloned());
         all_fn_refs.extend(functions.iter().cloned());
-        fn_refs.push(FnRefs { name: fname, schema: fschema, oid: foid, tables, functions });
+        fn_refs.push(FnRefs {
+            name: fname,
+            schema: fschema,
+            oid: foid,
+            tables,
+            functions,
+        });
     }
 
     if all_table_refs.is_empty() && all_fn_refs.is_empty() {
@@ -366,21 +379,23 @@ async fn plpgsql_edges(client: &Client) -> Result<Vec<Edge>> {
     let mut edges: Vec<Edge> = Vec::new();
     for fr in &fn_refs {
         let dependent = Node {
-            kind:   "function".to_owned(),
+            kind: "function".to_owned(),
             schema: fr.schema.clone(),
-            name:   fr.name.clone(),
-            oid:    fr.oid,
+            name: fr.name.clone(),
+            oid: fr.oid,
         };
         for tref in &fr.tables {
             if let Some(objects) = lookup.get(tref) {
                 for (kind, schema, oid) in objects {
                     edges.push(Edge {
-                        dependent: Node { ..dependent.clone() },
+                        dependent: Node {
+                            ..dependent.clone()
+                        },
                         dependency: Node {
-                            kind:   kind.clone(),
+                            kind: kind.clone(),
                             schema: schema.clone(),
-                            name:   tref.clone(),
-                            oid:    *oid,
+                            name: tref.clone(),
+                            oid: *oid,
                         },
                     });
                 }
@@ -393,12 +408,14 @@ async fn plpgsql_edges(client: &Client) -> Result<Vec<Edge>> {
                         continue; // skip self-reference
                     }
                     edges.push(Edge {
-                        dependent: Node { ..dependent.clone() },
+                        dependent: Node {
+                            ..dependent.clone()
+                        },
                         dependency: Node {
-                            kind:   kind.clone(),
+                            kind: kind.clone(),
                             schema: ref_schema.clone(),
-                            name:   fref.clone(),
-                            oid:    *oid,
+                            name: fref.clone(),
+                            oid: *oid,
                         },
                     });
                 }

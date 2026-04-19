@@ -1,9 +1,9 @@
-use std::collections::BTreeSet;
-
+use crate::error::Result;
+use crate::output;
+use crate::parse;
 use clap::Subcommand;
+use std::collections::BTreeSet;
 use tokio_postgres::Client;
-
-use crate::{error::Result, output, parse};
 
 #[derive(Debug, Subcommand)]
 pub enum Command {

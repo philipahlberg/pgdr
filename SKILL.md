@@ -143,7 +143,7 @@ pgdr role describe <role>
 ```
 
 - `list` — all roles with `name`, `superuser`, `create_db`, `create_role`, `can_login`, `replication`, `connection_limit`
-- `describe <role>` — lists which roles this role is a member of
+- `describe <role>` — a single object with the role's attributes (`superuser`, `inherit`, `create_role`, `create_db`, `can_login`, `replication`, `bypass_rls`, `connection_limit`, `valid_until`), role-level `config` settings as a key/value object (or `null`), `member_of` (roles this role belongs to), and `members` (roles that belong to this role). Returns `null` if the role doesn't exist.
 
 ---
 

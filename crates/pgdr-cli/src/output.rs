@@ -57,3 +57,10 @@ pub fn print_json(values: &[Value]) {
         serde_json::to_string_pretty(values).expect("serialization is infallible")
     );
 }
+
+pub fn print_value(value: &Value) {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(value).expect("serialization is infallible")
+    );
+}
