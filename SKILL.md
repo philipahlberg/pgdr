@@ -147,6 +147,42 @@ pgdr role describe <role>
 
 ---
 
+### graph
+
+```sh
+pgdr graph [<pattern>...]
+```
+
+Exports the full dependency graph of all database objects as a flat array of directed edges. Each edge has a `dependent` object and a `dependency` object, each with `kind`, `schema`, `name`, and `oid`. System schemas (`pg_catalog`, `information_schema`, `pg_toast`) are excluded.
+
+Optional positional `pattern` arguments filter edges using psql-style globs (`*` matches any sequence, `?` matches a single character — `_` is literal, not a wildcard). An unqualified pattern (`users`) matches the `name`; a qualified pattern (`public.users`) matches `schema` and `name` independently. An edge is included if any pattern matches either the dependent or the dependency. With no patterns, all edges are returned.
+
+```sh
+pgdr graph users                 # any edge touching a node named "users"
+pgdr graph "public.*"            # any edge touching a node in schema "public"
+pgdr graph "*_log" "orders"      # edges touching names ending in "_log" OR named "orders"
+pgdr graph "analytics.events_?"  # single-char wildcard
+```
+
+Sources combined:
+- Views and materialized views → their referenced tables/views/functions (via `pg_depend`)
+- SQL-language functions → their referenced tables/views/functions (via `pg_depend`)
+- PL/pgSQL (and other procedural) functions → referenced objects extracted by parsing the function body AST
+- Tables → tables they reference via foreign keys (via `pg_constraint`)
+- Triggers → the table they fire on and the function they call (via `pg_trigger`)
+
+**Finding unused objects** — nodes that never appear as `to_*` are not referenced by anything:
+
+```sh
+pgdr graph | jq '
+  . as $edges
+  | [.[].dependency.name] as $referenced
+  | [ $edges[] | select(.dependent.name | IN($referenced[]) | not) | .dependent ]
+  | unique'
+```
+
+---
+
 ## Working with the output
 
 All output is pretty-printed JSON. Pipe to `jq` for filtering and transformation:

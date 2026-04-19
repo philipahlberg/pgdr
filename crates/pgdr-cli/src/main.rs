@@ -1,10 +1,12 @@
 mod commands;
 mod error;
 mod output;
+mod parse;
 
 use crate::commands::constraint;
 use crate::commands::db;
 use crate::commands::function;
+use crate::commands::graph;
 use crate::commands::index;
 use crate::commands::query;
 use crate::commands::role;
@@ -44,6 +46,13 @@ enum Command {
     Constraint(constraint::Command),
     #[command(about = "Run a SQL query and return rows as JSON")]
     Query { sql: String },
+    #[command(about = "Export the full dependency graph of all database objects as edges")]
+    Graph {
+        /// Name patterns to filter edges (glob-style with `*` and `?`).
+        /// Unqualified patterns match the `name`; qualified patterns `schema.name`
+        /// match both. An edge is included if either side matches any pattern.
+        patterns: Vec<String>,
+    },
     #[command(subcommand, about = "Server information")]
     Server(server::Command),
     #[command(subcommand, about = "Inspect roles")]
@@ -80,6 +89,7 @@ async fn main() {
         Command::Index(cmd) => index::run(cmd, &client).await,
         Command::Constraint(cmd) => constraint::run(cmd, &client).await,
         Command::Query { sql } => query::run(&sql, &client).await,
+        Command::Graph { patterns } => graph::run(&client, &patterns).await,
         Command::Server(cmd) => server::run(cmd, &client).await,
         Command::Role(cmd) => role::run(cmd, &client).await,
     };

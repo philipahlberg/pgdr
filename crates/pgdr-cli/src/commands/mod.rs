@@ -1,4 +1,5 @@
 pub mod constraint;
+pub mod graph;
 pub mod db;
 pub mod function;
 pub mod index;

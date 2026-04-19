@@ -1,9 +1,9 @@
-use crate::error::Result;
-use crate::output;
-use clap::Subcommand;
-use serde_json::Value;
 use std::collections::BTreeSet;
+
+use clap::Subcommand;
 use tokio_postgres::Client;
+
+use crate::{error::Result, output, parse};
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
@@ -101,7 +101,6 @@ async fn deps(client: &Client, function: &str, schema: &str) -> Result<()> {
     Ok(())
 }
 
-/// Parses the function body and returns (table_names, function_names) referenced.
 fn extract_refs(
     prosrc: &str,
     lanname: &str,
@@ -113,16 +112,16 @@ fn extract_refs(
     match lanname {
         "sql" => {
             if let Ok(result) = pg_query::parse(prosrc) {
-                collect_from_parse_result(&result, &mut tables, &mut functions);
+                parse::collect_from_parse_result(&result, &mut tables, &mut functions);
             }
         }
         _ => {
             if let Ok(json) = pg_query::parse_plpgsql(funcdef) {
                 let mut queries = Vec::new();
-                collect_plpgsql_queries(&json, &mut queries);
+                parse::collect_plpgsql_queries(&json, &mut queries);
                 for query in &queries {
                     if let Ok(result) = pg_query::parse(query) {
-                        collect_from_parse_result(&result, &mut tables, &mut functions);
+                        parse::collect_from_parse_result(&result, &mut tables, &mut functions);
                     }
                 }
             }
@@ -130,40 +129,4 @@ fn extract_refs(
     }
 
     Ok((tables, functions))
-}
-
-fn collect_from_parse_result(
-    result: &pg_query::ParseResult,
-    tables: &mut BTreeSet<String>,
-    functions: &mut BTreeSet<String>,
-) {
-    for (name, _ctx) in &result.tables {
-        // Strip schema qualifier — we resolve schema via the DB lookup
-        let base = name.rsplit_once('.').map_or(name.as_str(), |(_, n)| n);
-        tables.insert(base.to_owned());
-    }
-    for (name, _ctx) in &result.functions {
-        let base = name.rsplit_once('.').map_or(name.as_str(), |(_, n)| n);
-        functions.insert(base.to_owned());
-    }
-}
-
-/// Recursively collects all `query` strings from PL/pgSQL expression nodes.
-fn collect_plpgsql_queries(value: &Value, out: &mut Vec<String>) {
-    match value {
-        Value::Object(map) => {
-            if let Some(Value::String(q)) = map.get("query") {
-                out.push(q.clone());
-            }
-            for v in map.values() {
-                collect_plpgsql_queries(v, out);
-            }
-        }
-        Value::Array(arr) => {
-            for v in arr {
-                collect_plpgsql_queries(v, out);
-            }
-        }
-        _ => {}
-    }
 }
