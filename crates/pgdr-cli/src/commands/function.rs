@@ -1,10 +1,9 @@
-use std::collections::BTreeSet;
-
+use crate::error::Result;
+use crate::output;
 use clap::Subcommand;
 use serde_json::Value;
+use std::collections::BTreeSet;
 use tokio_postgres::Client;
-
-use crate::{error::Result, output};
 
 #[derive(Debug, Subcommand)]
 pub enum Command {

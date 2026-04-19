@@ -1,7 +1,7 @@
+use crate::error::Result;
+use crate::output;
 use clap::Subcommand;
 use tokio_postgres::Client;
-
-use crate::{error::Result, output};
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
@@ -27,7 +27,11 @@ pub async fn run(cmd: Command, client: &Client) -> Result<()> {
     match cmd {
         Command::List { schema } => list(client, &schema).await,
         Command::Describe { table, schema } => describe(client, &schema, &table).await,
-        Command::Get { table, schema, limit } => get(client, &schema, &table, limit).await,
+        Command::Get {
+            table,
+            schema,
+            limit,
+        } => get(client, &schema, &table, limit).await,
     }
 }
 

@@ -1,7 +1,7 @@
+use crate::error::Result;
+use crate::output;
 use clap::Subcommand;
 use tokio_postgres::Client;
-
-use crate::{error::Result, output};
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
@@ -19,9 +19,7 @@ pub async fn run(cmd: Command, client: &Client) -> Result<()> {
 }
 
 async fn version(client: &Client) -> Result<()> {
-    let rows = client
-        .query("SELECT version() AS version", &[])
-        .await?;
+    let rows = client.query("SELECT version() AS version", &[]).await?;
     output::print_json(&output::rows_to_json(&rows));
     Ok(())
 }
