@@ -13,13 +13,13 @@ _.file = ".env"
 run = "cargo build --release --all-features"
 
 [tasks.test]
-run = "cargo test"
+run = "cargo test --quiet --all-features"
 
 [tasks.fmt]
-run = ["cargo +nightly fmt --all", "taplo fmt"]
+run = ["cargo +nightly fmt --all --quiet", "taplo fmt --quiet"]
 
 [tasks.clippy]
-run = "cargo clippy -- -D warnings"
+run = "cargo clippy --quiet -- -D warnings"
 
 [tasks.deny]
 run = "cargo deny check advisories bans licenses"
@@ -32,9 +32,9 @@ depends = ["check", "fmt", "clippy", "deny"]
 
 [tasks.fix]
 run = [
-  "cargo check",
-  "cargo clippy --all-targets --fix --allow-dirty --allow-staged --no-deps",
-  "cargo +nightly fmt --all",
-  "cargo test --no-fail-fast --all-features",
-  "cargo doc",
+  "cargo check --quiet",
+  "cargo clippy --quiet --all-targets --fix --allow-dirty --allow-staged --no-deps",
+  "cargo +nightly fmt --quiet --all",
+  "cargo test --quiet --no-fail-fast --all-features",
+  "cargo doc --quiet --no-deps",
 ]
