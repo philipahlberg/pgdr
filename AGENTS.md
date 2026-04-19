@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI agents working with code in this repository.
 
 ## Commands
 
@@ -18,3 +18,7 @@ Tasks are managed via `mise`. Use `mise run <task>` or the underlying cargo comm
 | Auto-fix + test | `mise run fix` |
 
 Run a single test: `cargo test <test_name>`.
+
+## Using the pgdr CLI
+
+See [SKILL.md](SKILL.md) for full documentation on how to use the `pgdr` CLI to inspect PostgreSQL databases.
