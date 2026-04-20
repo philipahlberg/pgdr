@@ -43,12 +43,12 @@ Lists all schemas with `name` and `owner`.
 
 ```sh
 pgdr tables list [--schema <schema>]
-pgdr tables describe <table> [--schema <schema>]
+pgdr tables view <table> [--schema <schema>]
 pgdr tables get <table> [--schema <schema>] [--limit <n>]
 ```
 
 - `list` — table names and types in the schema
-- `describe` — columns with `name`, `type`, `nullable`, `default`, `max_length`, `numeric_precision`, `numeric_scale`
+- `view` — columns with `name`, `type`, `nullable`, `default`, `max_length`, `numeric_precision`, `numeric_scale`
 - `get` — actual rows as JSON; use `--limit` to cap the number returned
 
 Default schema is `public` for all three.
@@ -139,11 +139,11 @@ pgdr server extensions
 
 ```sh
 pgdr roles list
-pgdr roles describe <role>
+pgdr roles view <role>
 ```
 
 - `list` — all roles with `name`, `superuser`, `create_db`, `create_role`, `can_login`, `replication`, `connection_limit`
-- `describe <role>` — a single object with the role's attributes (`superuser`, `inherit`, `create_role`, `create_db`, `can_login`, `replication`, `bypass_rls`, `connection_limit`, `valid_until`), role-level `config` settings as a key/value object (or `null`), `member_of` (roles this role belongs to), and `members` (roles that belong to this role). Returns `null` if the role doesn't exist.
+- `view <role>` — a single object with the role's attributes (`superuser`, `inherit`, `create_role`, `create_db`, `can_login`, `replication`, `bypass_rls`, `connection_limit`, `valid_until`), role-level `config` settings as a key/value object (or `null`), `member_of` (roles this role belongs to), and `members` (roles that belong to this role). Returns `null` if the role doesn't exist.
 
 ---
 
@@ -229,7 +229,7 @@ All output is pretty-printed JSON. Pipe to `jq` for filtering and transformation
 
 ```sh
 # Get all nullable columns in the users table
-pgdr tables describe users | jq '[.[] | select(.nullable == true) | .name]'
+pgdr tables view users | jq '[.[] | select(.nullable == true) | .name]'
 
 # Count tables in a schema
 pgdr tables list | jq 'length'
@@ -247,7 +247,7 @@ pgdr server settings | jq '.[] | select(.name == "max_connections") | .setting'
 ```sh
 pgdr schemas list
 pgdr tables list
-pgdr tables describe <interesting_table>
+pgdr tables view <interesting_table>
 pgdr constraints list --table <interesting_table>
 pgdr indices list --table <interesting_table>
 ```
@@ -260,5 +260,5 @@ pgdr tables get users --limit 5
 **Use a non-public schema:**
 ```sh
 pgdr tables list --schema analytics
-pgdr tables describe events --schema analytics
+pgdr tables view events --schema analytics
 ```
