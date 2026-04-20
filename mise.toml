@@ -38,3 +38,12 @@ run = [
   "cargo test --quiet --no-fail-fast --all-features",
   "cargo doc --quiet --no-deps",
 ]
+
+[tasks."pg:up"]
+run = "docker compose up -d --wait"
+
+[tasks."pg:down"]
+run = "docker compose down"
+
+[tasks."pg:logs"]
+run = "docker compose logs -f"

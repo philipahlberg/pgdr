@@ -8,6 +8,8 @@ pub enum Error {
     Json(#[from] serde_json::Error),
     #[error("parse error: {0}")]
     Parse(#[from] pg_query::Error),
+    #[error("{0}")]
+    Message(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

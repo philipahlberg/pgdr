@@ -2,6 +2,7 @@ use crate::error::Result;
 use crate::output;
 use crate::parse;
 use clap::Subcommand;
+use serde_json::Value;
 use std::collections::BTreeSet;
 use tokio_postgres::Client;
 
@@ -18,14 +19,14 @@ pub enum Command {
     },
 }
 
-pub async fn run(cmd: Command, client: &Client) -> Result<()> {
+pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::List { schema } => list(client, &schema).await,
         Command::Deps { function, schema } => deps(client, &function, &schema).await,
     }
 }
 
-async fn list(client: &Client, schema: &str) -> Result<()> {
+async fn list(client: &Client, schema: &str) -> Result<Value> {
     let rows = client
         .query(
             "SELECT routine_name AS name, routine_type AS type, \
@@ -36,11 +37,10 @@ async fn list(client: &Client, schema: &str) -> Result<()> {
             &[&schema],
         )
         .await?;
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn deps(client: &Client, function: &str, schema: &str) -> Result<()> {
+async fn deps(client: &Client, function: &str, schema: &str) -> Result<Value> {
     let row = client
         .query_opt(
             "SELECT p.prosrc, l.lanname, pg_get_functiondef(p.oid) AS def \
@@ -54,8 +54,7 @@ async fn deps(client: &Client, function: &str, schema: &str) -> Result<()> {
         .await?;
 
     let Some(row) = row else {
-        output::print_json(&[]);
-        return Ok(());
+        return Ok(Value::Array(vec![]));
     };
 
     let prosrc: &str = row.get("prosrc");
@@ -65,8 +64,7 @@ async fn deps(client: &Client, function: &str, schema: &str) -> Result<()> {
     let (table_names, fn_names) = extract_refs(prosrc, lanname, funcdef)?;
 
     if table_names.is_empty() && fn_names.is_empty() {
-        output::print_json(&[]);
-        return Ok(());
+        return Ok(Value::Array(vec![]));
     }
 
     let table_names: Vec<&str> = table_names.iter().map(String::as_str).collect();
@@ -97,8 +95,7 @@ async fn deps(client: &Client, function: &str, schema: &str) -> Result<()> {
         )
         .await?;
 
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
 fn extract_refs(

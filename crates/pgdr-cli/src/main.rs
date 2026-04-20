@@ -1,22 +1,21 @@
-mod commands;
-mod error;
-mod output;
-mod parse;
-
-use crate::commands::constraint;
-use crate::commands::db;
-use crate::commands::function;
-use crate::commands::graph;
-use crate::commands::index;
-use crate::commands::query;
-use crate::commands::role;
-use crate::commands::schema;
-use crate::commands::sequence;
-use crate::commands::server;
-use crate::commands::table;
-use crate::commands::view;
 use clap::Parser;
 use clap::Subcommand;
+use pgdr::commands::connections;
+use pgdr::commands::constraint;
+use pgdr::commands::db;
+use pgdr::commands::function;
+use pgdr::commands::graph;
+use pgdr::commands::index;
+use pgdr::commands::locks;
+use pgdr::commands::queries;
+use pgdr::commands::query;
+use pgdr::commands::role;
+use pgdr::commands::schema;
+use pgdr::commands::sequence;
+use pgdr::commands::server;
+use pgdr::commands::table;
+use pgdr::commands::view;
+use pgdr::output;
 use tokio_postgres::NoTls;
 
 #[derive(Debug, Parser)]
@@ -57,6 +56,39 @@ enum Command {
     Server(server::Command),
     #[command(subcommand, about = "Inspect roles")]
     Role(role::Command),
+    #[command(about = "List active connections from pg_stat_activity")]
+    Connections {
+        #[arg(long)]
+        state: Option<String>,
+        #[arg(long)]
+        database: Option<String>,
+        #[arg(long)]
+        exclude_internal: bool,
+    },
+    #[command(about = "List locks from pg_locks")]
+    Locks {
+        #[arg(long, conflicts_with = "blocked")]
+        granted: bool,
+        #[arg(long)]
+        blocked: bool,
+        #[arg(long)]
+        schema: Option<String>,
+        #[arg(long)]
+        relation: Option<String>,
+        #[arg(long)]
+        exclude_advisory_locks: bool,
+    },
+    #[command(about = "List top queries from pg_stat_statements")]
+    Queries {
+        #[arg(long = "order-by", value_enum, default_value_t = queries::OrderBy::TotalTime)]
+        order_by: queries::OrderBy,
+        #[arg(long, default_value_t = 50)]
+        limit: i64,
+        #[arg(long)]
+        database: Option<String>,
+        #[arg(long)]
+        role: Option<String>,
+    },
 }
 
 #[tokio::main]
@@ -92,10 +124,64 @@ async fn main() {
         Command::Graph { patterns } => graph::run(&client, &patterns).await,
         Command::Server(cmd) => server::run(cmd, &client).await,
         Command::Role(cmd) => role::run(cmd, &client).await,
+        Command::Connections {
+            state,
+            database,
+            exclude_internal,
+        } => {
+            connections::run(
+                &client,
+                state.as_deref(),
+                database.as_deref(),
+                exclude_internal,
+            )
+            .await
+        }
+        Command::Locks {
+            granted,
+            blocked,
+            schema,
+            relation,
+            exclude_advisory_locks,
+        } => {
+            locks::run(
+                &client,
+                granted,
+                blocked,
+                schema.as_deref(),
+                relation.as_deref(),
+                exclude_advisory_locks,
+            )
+            .await
+        }
+        Command::Queries {
+            order_by,
+            limit,
+            database,
+            role,
+        } => {
+            queries::run(
+                &client,
+                order_by,
+                limit,
+                database.as_deref(),
+                role.as_deref(),
+            )
+            .await
+        }
     };
 
-    if let Err(e) = result {
-        eprintln!("error: {e}");
-        std::process::exit(1);
+    match result {
+        Ok(value) => output::print_value(&value),
+        Err(e) => {
+            eprint!("error: {e}");
+            let mut source = std::error::Error::source(&e);
+            while let Some(err) = source {
+                eprint!(": {err}");
+                source = err.source();
+            }
+            eprintln!();
+            std::process::exit(1);
+        }
     }
 }

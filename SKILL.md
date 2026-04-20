@@ -147,6 +147,46 @@ pgdr role describe <role>
 
 ---
 
+### connections
+
+```sh
+pgdr connections [--state <state>] [--database <name>] [--exclude-internal]
+```
+
+Lists sessions from `pg_stat_activity` with `pid`, `leader_pid`, `backend_type`, `database`, `user`, `application_name`, `client_addr`, `client_hostname`, `client_port`, `backend_start`, `xact_start`, `query_start`, `state_change`, `state`, `wait_event_type`, `wait_event`, `backend_xid`, `backend_xmin`, `query_id`, `query`. By default includes internal backend types (autovacuum, walwriter, checkpointer, …); `--exclude-internal` restricts to `client backend` and `parallel worker`.
+
+---
+
+### locks
+
+```sh
+pgdr locks [--granted | --blocked] [--schema <schema>] [--relation <name>] [--exclude-advisory-locks]
+```
+
+Lists rows from `pg_locks` joined with `pg_class`/`pg_namespace`/`pg_database`/`pg_stat_activity`. Each row has `locktype`, `mode`, `granted`, `fastpath`, `wait_start`, `database`, `schema`, `relation` (nulls for non-relation locks), `pid`, `state`, `query`, and `blocked_by` (array of pids from `pg_blocking_pids`). Advisory locks are included by default; use `--exclude-advisory-locks` to omit. `--granted` and `--blocked` are mutually exclusive.
+
+---
+
+### queries
+
+```sh
+pgdr queries [--order-by <key>] [--limit <n>] [--database <name>] [--role <name>]
+```
+
+Lists top queries from the `pg_stat_statements` extension. Errors if the extension is not installed. `--order-by` ∈ `total_time` (default) \| `mean_time` \| `calls` \| `rows` \| `io`. `--limit` defaults to 50. Each row has:
+
+- `queryid`, `database`, `role`, `toplevel`, `query`, `calls`, `rows`
+- `plan`: `count`, `total_ms`, `min_ms`, `max_ms`, `mean_ms`, `stddev_ms`
+- `exec`: `total_ms`, `min_ms`, `max_ms`, `mean_ms`, `stddev_ms`
+- `blocks`: `shared`/`local` (each with `hit`, `read`, `dirtied`, `written`) and `temp` (`read`, `written`)
+- `io_time_ms`: `blk_read`, `blk_write` (pre-PG17 columns), `shared_read`, `shared_write`, `local_read`, `local_write` (PG17+ columns), `temp_read`, `temp_write` (PG15+). Fields absent on the running server are `null`.
+- `wal`: `records`, `fpi`, `bytes`
+- `jit`: `functions`, `generation_time_ms`, `inlining_time_ms`, `optimization_time_ms`, `emission_time_ms`
+
+Minimum PostgreSQL version: 14.
+
+---
+
 ### graph
 
 ```sh

@@ -12,14 +12,14 @@ pub enum Command {
     Describe { role: String },
 }
 
-pub async fn run(cmd: Command, client: &Client) -> Result<()> {
+pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::List => list(client).await,
         Command::Describe { role } => describe(client, &role).await,
     }
 }
 
-async fn list(client: &Client) -> Result<()> {
+async fn list(client: &Client) -> Result<Value> {
     let rows = client
         .query(
             "SELECT rolname AS name, rolsuper AS superuser, \
@@ -31,11 +31,10 @@ async fn list(client: &Client) -> Result<()> {
             &[],
         )
         .await?;
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn describe(client: &Client, role: &str) -> Result<()> {
+async fn describe(client: &Client, role: &str) -> Result<Value> {
     let row = client
         .query_opt(
             "SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole, \
@@ -62,8 +61,7 @@ async fn describe(client: &Client, role: &str) -> Result<()> {
         .await?;
 
     let Some(row) = row else {
-        output::print_value(&Value::Null);
-        return Ok(());
+        return Ok(Value::Null);
     };
 
     let mut map = Map::new();
@@ -97,8 +95,7 @@ async fn describe(client: &Client, role: &str) -> Result<()> {
     let members: Vec<String> = row.get("members");
     map.insert("members".into(), to_string_array(members));
 
-    output::print_value(&Value::Object(map));
-    Ok(())
+    Ok(Value::Object(map))
 }
 
 fn to_string_array(values: Vec<String>) -> Value {

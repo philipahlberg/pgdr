@@ -1,6 +1,7 @@
 use crate::error::Result;
 use crate::output;
 use clap::Subcommand;
+use serde_json::Value;
 use tokio_postgres::Client;
 
 #[derive(Debug, Subcommand)]
@@ -23,7 +24,7 @@ pub enum Command {
     },
 }
 
-pub async fn run(cmd: Command, client: &Client) -> Result<()> {
+pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::List { schema } => list(client, &schema).await,
         Command::Describe { table, schema } => describe(client, &schema, &table).await,
@@ -35,7 +36,7 @@ pub async fn run(cmd: Command, client: &Client) -> Result<()> {
     }
 }
 
-async fn list(client: &Client, schema: &str) -> Result<()> {
+async fn list(client: &Client, schema: &str) -> Result<Value> {
     let rows = client
         .query(
             "SELECT table_name AS name, table_type AS type \
@@ -45,11 +46,10 @@ async fn list(client: &Client, schema: &str) -> Result<()> {
             &[&schema],
         )
         .await?;
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn describe(client: &Client, schema: &str, table: &str) -> Result<()> {
+async fn describe(client: &Client, schema: &str, table: &str) -> Result<Value> {
     let rows = client
         .query(
             "SELECT \
@@ -66,11 +66,10 @@ async fn describe(client: &Client, schema: &str, table: &str) -> Result<()> {
             &[&schema, &table],
         )
         .await?;
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn get(client: &Client, schema: &str, table: &str, limit: Option<i64>) -> Result<()> {
+async fn get(client: &Client, schema: &str, table: &str, limit: Option<i64>) -> Result<Value> {
     let qualified = format!("\"{schema}\".\"{table}\"");
     let rows = if let Some(n) = limit {
         client
@@ -81,6 +80,5 @@ async fn get(client: &Client, schema: &str, table: &str, limit: Option<i64>) -> 
             .query(&format!("SELECT * FROM {qualified}"), &[])
             .await?
     };
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }

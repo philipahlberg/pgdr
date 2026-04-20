@@ -1,8 +1,11 @@
+pub mod connections;
 pub mod constraint;
 pub mod db;
 pub mod function;
 pub mod graph;
 pub mod index;
+pub mod locks;
+pub mod queries;
 pub mod query;
 pub mod role;
 pub mod schema;

@@ -1,0 +1,47 @@
+x-common: &common
+  environment:
+    POSTGRES_PASSWORD: postgres
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres"]
+    interval: 2s
+    timeout: 2s
+    retries: 20
+
+x-pgss: &pgss
+  command:
+    - postgres
+    - -c
+    - shared_preload_libraries=pg_stat_statements
+  volumes:
+    - ./docker/init-pgss.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+services:
+  pg14:
+    <<: [*common, *pgss]
+    image: postgres:14
+    ports: ["5414:5432"]
+
+  pg15:
+    <<: [*common, *pgss]
+    image: postgres:15
+    ports: ["5415:5432"]
+
+  pg16:
+    <<: [*common, *pgss]
+    image: postgres:16
+    ports: ["5416:5432"]
+
+  pg17:
+    <<: [*common, *pgss]
+    image: postgres:17
+    ports: ["5417:5432"]
+
+  pg18:
+    <<: [*common, *pgss]
+    image: postgres:18
+    ports: ["5418:5432"]
+
+  pg_bare:
+    <<: *common
+    image: postgres:17
+    ports: ["5400:5432"]

@@ -736,7 +736,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pgdr-cli"
+name = "pgdr"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -745,9 +745,18 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.18",
  "time",
- "tokio",
  "tokio-postgres",
  "uuid",
+]
+
+[[package]]
+name = "pgdr-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "pgdr",
+ "tokio",
+ "tokio-postgres",
 ]
 
 [[package]]
@@ -1136,6 +1145,16 @@ dependencies = [
  "once_cell",
  "rustix 1.1.4",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "tests"
+version = "0.1.0"
+dependencies = [
+ "pgdr",
+ "serde_json",
+ "tokio",
+ "tokio-postgres",
 ]
 
 [[package]]

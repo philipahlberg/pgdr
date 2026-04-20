@@ -1,7 +1,7 @@
 [package]
-name                   = "pgdr-cli"
+name                   = "tests"
 version                = "0.1.0"
-publish                = true
+publish                = false
 edition.workspace      = true
 license.workspace      = true
 authors.workspace      = true
@@ -10,12 +10,13 @@ rust-version.workspace = true
 [lints]
 workspace = true
 
-[[bin]]
-name = "pgdr"
-path = "src/main.rs"
+[lib]
+path = "src/lib.rs"
 
 [dependencies]
-pgdr                     = { path = "../pgdr" }
-clap.workspace           = true
 tokio.workspace          = true
 tokio-postgres.workspace = true
+
+[dev-dependencies]
+pgdr                 = { path = "../crates/pgdr" }
+serde_json.workspace = true

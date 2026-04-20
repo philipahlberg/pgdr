@@ -1,5 +1,4 @@
 use crate::error::Result;
-use crate::output;
 use crate::parse;
 use serde_json::Value;
 use serde_json::json;
@@ -226,7 +225,7 @@ WHERE NOT t.tgisinternal
 ORDER BY dependent_kind, dependent_schema, dependent_name, dependency_kind, dependency_schema, dependency_name
 "#;
 
-pub async fn run(client: &Client, patterns: &[String]) -> Result<()> {
+pub async fn run(client: &Client, patterns: &[String]) -> Result<Value> {
     let patterns: Vec<Pattern> = patterns.iter().map(|s| Pattern::parse(s)).collect();
     let mut edges: BTreeSet<Edge> = BTreeSet::new();
 
@@ -261,8 +260,7 @@ pub async fn run(client: &Client, patterns: &[String]) -> Result<()> {
         })
         .map(Edge::to_json)
         .collect();
-    output::print_json(&values);
-    Ok(())
+    Ok(Value::Array(values))
 }
 
 async fn plpgsql_edges(client: &Client) -> Result<Vec<Edge>> {

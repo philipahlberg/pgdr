@@ -1,6 +1,7 @@
 use crate::error::Result;
 use crate::output;
 use clap::Subcommand;
+use serde_json::Value;
 use tokio_postgres::Client;
 
 #[derive(Debug, Subcommand)]
@@ -10,7 +11,7 @@ pub enum Command {
     Extensions,
 }
 
-pub async fn run(cmd: Command, client: &Client) -> Result<()> {
+pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::Version => version(client).await,
         Command::Settings => settings(client).await,
@@ -18,13 +19,12 @@ pub async fn run(cmd: Command, client: &Client) -> Result<()> {
     }
 }
 
-async fn version(client: &Client) -> Result<()> {
+async fn version(client: &Client) -> Result<Value> {
     let rows = client.query("SELECT version() AS version", &[]).await?;
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn settings(client: &Client) -> Result<()> {
+async fn settings(client: &Client) -> Result<Value> {
     let rows = client
         .query(
             "SELECT name, setting, unit, category, short_desc AS description, \
@@ -34,11 +34,10 @@ async fn settings(client: &Client) -> Result<()> {
             &[],
         )
         .await?;
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn extensions(client: &Client) -> Result<()> {
+async fn extensions(client: &Client) -> Result<Value> {
     let rows = client
         .query(
             "SELECT name, default_version, installed_version, comment AS description \
@@ -47,6 +46,5 @@ async fn extensions(client: &Client) -> Result<()> {
             &[],
         )
         .await?;
-    output::print_json(&output::rows_to_json(&rows));
-    Ok(())
+    Ok(Value::Array(output::rows_to_json(&rows)))
 }
