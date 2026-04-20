@@ -19,32 +19,32 @@ All commands below assume this is set.
 
 ## Commands
 
-### db
+### databases
 
 ```sh
-pgdr db list
+pgdr databases list
 ```
 
 Lists all databases with `name`, `encoding`, `collation`, and `character_type`.
 
 ---
 
-### schema
+### schemas
 
 ```sh
-pgdr schema list
+pgdr schemas list
 ```
 
 Lists all schemas with `name` and `owner`.
 
 ---
 
-### table
+### tables
 
 ```sh
-pgdr table list [--schema <schema>]
-pgdr table describe <table> [--schema <schema>]
-pgdr table get <table> [--schema <schema>] [--limit <n>]
+pgdr tables list [--schema <schema>]
+pgdr tables describe <table> [--schema <schema>]
+pgdr tables get <table> [--schema <schema>] [--limit <n>]
 ```
 
 - `list` — table names and types in the schema
@@ -55,31 +55,31 @@ Default schema is `public` for all three.
 
 ---
 
-### view
+### views
 
 ```sh
-pgdr view list [--schema <schema>]
+pgdr views list [--schema <schema>]
 ```
 
 Lists views with their SQL definitions.
 
 ---
 
-### sequence
+### sequences
 
 ```sh
-pgdr sequence list [--schema <schema>]
+pgdr sequences list [--schema <schema>]
 ```
 
 Lists sequences with data type, min/max values, and increment.
 
 ---
 
-### function
+### functions
 
 ```sh
-pgdr function list [--schema <schema>]
-pgdr function deps <function> [--schema <schema>]
+pgdr functions list [--schema <schema>]
+pgdr functions deps <function> [--schema <schema>]
 ```
 
 - `list` — functions and procedures with `name`, `type`, `return_type`, and `language`
@@ -87,20 +87,20 @@ pgdr function deps <function> [--schema <schema>]
 
 ---
 
-### index
+### indices
 
 ```sh
-pgdr index list [--schema <schema>] [--table <table>]
+pgdr indices list [--schema <schema>] [--table <table>]
 ```
 
-Lists indexes with `name`, `table`, `unique`, `primary`, `method`, and `definition`. Use `--table` to filter to a specific table.
+Lists indices with `name`, `table`, `unique`, `primary`, `method`, and `definition`. Use `--table` to filter to a specific table.
 
 ---
 
-### constraint
+### constraints
 
 ```sh
-pgdr constraint list [--schema <schema>] [--table <table>]
+pgdr constraints list [--schema <schema>] [--table <table>]
 ```
 
 Lists constraints with `name`, `table`, `type`, `update_rule`, `delete_rule`, `foreign_table`, and `foreign_column`. Use `--table` to filter.
@@ -135,11 +135,11 @@ pgdr server extensions
 
 ---
 
-### role
+### roles
 
 ```sh
-pgdr role list
-pgdr role describe <role>
+pgdr roles list
+pgdr roles describe <role>
 ```
 
 - `list` — all roles with `name`, `superuser`, `create_db`, `create_role`, `can_login`, `replication`, `connection_limit`
@@ -229,13 +229,13 @@ All output is pretty-printed JSON. Pipe to `jq` for filtering and transformation
 
 ```sh
 # Get all nullable columns in the users table
-pgdr table describe users | jq '[.[] | select(.nullable == true) | .name]'
+pgdr tables describe users | jq '[.[] | select(.nullable == true) | .name]'
 
 # Count tables in a schema
-pgdr table list | jq 'length'
+pgdr tables list | jq 'length'
 
 # Find foreign key constraints
-pgdr constraint list | jq '[.[] | select(.type == "FOREIGN KEY")]'
+pgdr constraints list | jq '[.[] | select(.type == "FOREIGN KEY")]'
 
 # Extract a specific setting value
 pgdr server settings | jq '.[] | select(.name == "max_connections") | .setting'
@@ -245,20 +245,20 @@ pgdr server settings | jq '.[] | select(.name == "max_connections") | .setting'
 
 **Explore an unfamiliar database:**
 ```sh
-pgdr schema list
-pgdr table list
-pgdr table describe <interesting_table>
-pgdr constraint list --table <interesting_table>
-pgdr index list --table <interesting_table>
+pgdr schemas list
+pgdr tables list
+pgdr tables describe <interesting_table>
+pgdr constraints list --table <interesting_table>
+pgdr indices list --table <interesting_table>
 ```
 
 **Sample data from a table:**
 ```sh
-pgdr table get users --limit 5
+pgdr tables get users --limit 5
 ```
 
 **Use a non-public schema:**
 ```sh
-pgdr table list --schema analytics
-pgdr table describe events --schema analytics
+pgdr tables list --schema analytics
+pgdr tables describe events --schema analytics
 ```

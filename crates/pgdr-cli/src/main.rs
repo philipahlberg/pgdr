@@ -1,20 +1,20 @@
 use clap::Parser;
 use clap::Subcommand;
 use pgdr::commands::connections;
-use pgdr::commands::constraint;
-use pgdr::commands::db;
-use pgdr::commands::function;
+use pgdr::commands::constraints;
+use pgdr::commands::databases;
+use pgdr::commands::functions;
 use pgdr::commands::graph;
-use pgdr::commands::index;
+use pgdr::commands::indices;
 use pgdr::commands::locks;
 use pgdr::commands::queries;
 use pgdr::commands::query;
-use pgdr::commands::role;
-use pgdr::commands::schema;
-use pgdr::commands::sequence;
+use pgdr::commands::roles;
+use pgdr::commands::schemas;
+use pgdr::commands::sequences;
 use pgdr::commands::server;
-use pgdr::commands::table;
-use pgdr::commands::view;
+use pgdr::commands::tables;
+use pgdr::commands::views;
 use pgdr::output;
 use tokio_postgres::NoTls;
 
@@ -28,21 +28,21 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     #[command(subcommand, about = "List databases")]
-    Db(db::Command),
+    Databases(databases::Command),
     #[command(subcommand, about = "List schemas")]
-    Schema(schema::Command),
+    Schemas(schemas::Command),
     #[command(subcommand, about = "Inspect tables and fetch rows")]
-    Table(table::Command),
+    Tables(tables::Command),
     #[command(subcommand, about = "List views")]
-    View(view::Command),
+    Views(views::Command),
     #[command(subcommand, about = "List sequences")]
-    Sequence(sequence::Command),
+    Sequences(sequences::Command),
     #[command(subcommand, about = "List functions and procedures")]
-    Function(function::Command),
-    #[command(subcommand, about = "List indexes")]
-    Index(index::Command),
+    Functions(functions::Command),
+    #[command(subcommand, about = "List indices")]
+    Indices(indices::Command),
     #[command(subcommand, about = "List constraints")]
-    Constraint(constraint::Command),
+    Constraints(constraints::Command),
     #[command(about = "Run a SQL query and return rows as JSON")]
     Query { sql: String },
     #[command(about = "Export the full dependency graph of all database objects as edges")]
@@ -55,7 +55,7 @@ enum Command {
     #[command(subcommand, about = "Server information")]
     Server(server::Command),
     #[command(subcommand, about = "Inspect roles")]
-    Role(role::Command),
+    Roles(roles::Command),
     #[command(about = "List active connections from pg_stat_activity")]
     Connections {
         #[arg(long)]
@@ -112,18 +112,18 @@ async fn main() {
     });
 
     let result = match cli.command {
-        Command::Db(cmd) => db::run(cmd, &client).await,
-        Command::Schema(cmd) => schema::run(cmd, &client).await,
-        Command::Table(cmd) => table::run(cmd, &client).await,
-        Command::View(cmd) => view::run(cmd, &client).await,
-        Command::Sequence(cmd) => sequence::run(cmd, &client).await,
-        Command::Function(cmd) => function::run(cmd, &client).await,
-        Command::Index(cmd) => index::run(cmd, &client).await,
-        Command::Constraint(cmd) => constraint::run(cmd, &client).await,
+        Command::Databases(cmd) => databases::run(cmd, &client).await,
+        Command::Schemas(cmd) => schemas::run(cmd, &client).await,
+        Command::Tables(cmd) => tables::run(cmd, &client).await,
+        Command::Views(cmd) => views::run(cmd, &client).await,
+        Command::Sequences(cmd) => sequences::run(cmd, &client).await,
+        Command::Functions(cmd) => functions::run(cmd, &client).await,
+        Command::Indices(cmd) => indices::run(cmd, &client).await,
+        Command::Constraints(cmd) => constraints::run(cmd, &client).await,
         Command::Query { sql } => query::run(&sql, &client).await,
         Command::Graph { patterns } => graph::run(&client, &patterns).await,
         Command::Server(cmd) => server::run(cmd, &client).await,
-        Command::Role(cmd) => role::run(cmd, &client).await,
+        Command::Roles(cmd) => roles::run(cmd, &client).await,
         Command::Connections {
             state,
             database,

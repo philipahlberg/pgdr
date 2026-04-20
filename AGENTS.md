@@ -6,7 +6,7 @@ This file provides guidance to AI agents working with code in this repository.
 
 The following is an overview of the contents of this workspace. Make sure to update it if you change anything.
 
-- `SKILL.md` — full CLI reference: `db`, `schema`, `table`, `view`, `sequence`, `function`, `index`, `constraint`, `query`, `server`, `role`, `graph`, `connections`, `locks`, `queries`, plus `jq` workflows
+- `SKILL.md` — full CLI reference: `databases`, `schemas`, `tables`, `views`, `sequences`, `functions`, `indices`, `constraints`, `query`, `server`, `roles`, `graph`, `connections`, `locks`, `queries`, plus `jq` workflows
 - `Cargo.toml` / `Cargo.lock` — workspace manifest; declare dependencies here and reference them in crates
 - `mise.toml` — task runner (`build`, `test`, `fmt`, `clippy`, `deny`, `check`, `ci`, `fix`, `pg:up`, `pg:down`, `pg:logs`); loads `.env`
 - `rust-toolchain.toml`, `rustfmt.toml`, `taplo.toml` — toolchain + formatter config
@@ -15,7 +15,7 @@ The following is an overview of the contents of this workspace. Make sure to upd
 - `crates/pgdr/` — library crate: command implementations returning `serde_json::Value`
   - `src/lib.rs` — re-exports `Error`, `Result`, and the `commands`, `output`, `parse` modules
   - `src/error.rs`, `src/output.rs`, `src/parse.rs` — shared error type, JSON output helpers, SQL/AST parsing utilities
-  - `src/commands/` — one module per subcommand: `db`, `schema`, `table`, `view`, `sequence`, `function`, `index`, `constraint`, `query`, `graph`, `server`, `role`, `connections`, `locks`, `queries`, plus `mod.rs`
+  - `src/commands/` — one module per subcommand: `databases`, `schemas`, `tables`, `views`, `sequences`, `functions`, `indices`, `constraints`, `query`, `graph`, `server`, `roles`, `connections`, `locks`, `queries`, plus `mod.rs`
 - `crates/pgdr-cli/` — thin binary wrapper, binary `pgdr`
   - `src/main.rs` — clap CLI, connects via `DATABASE_URL`, dispatches to `pgdr::commands::*` and prints returned JSON
 - `tests/` — integration tests crate (`tests/Cargo.toml`, `tests/src/lib.rs` with `try_connect`/`VERSIONS`/`BARE_PORT` helpers, integration tests under `tests/tests/{connections,locks,queries}.rs`); requires the compose stack to be up
