@@ -79,11 +79,11 @@ Lists sequences with data type, min/max values, and increment.
 
 ```sh
 pgdr functions list [--schema <schema>]
-pgdr functions deps <function> [--schema <schema>]
+pgdr functions view <function> [--schema <schema>]
 ```
 
 - `list` — functions and procedures with `name`, `type`, `return_type`, and `language`
-- `deps <function>` — objects the function depends on, each with `kind`, `schema`, and `name`. Works for both SQL-language and PL/pgSQL functions by parsing the function body via the PostgreSQL AST. `kind` is one of `function`, `table`, `view`, `materialized_view`, `sequence`, or `foreign_table`. Does not track dynamically constructed queries (e.g. `EXECUTE '...' || var`).
+- `view <function>` — a single object with `name`, `schema`, `kind` (`function`/`procedure`/`aggregate`/`window`), `language`, `return_type`, `arguments`, `volatility`, `strict`, `security_definer`, `parallel`, `owner`, `source`, `definition`, and `dependencies`. For SQL- and PL/pgSQL-language functions, `dependencies` is an array of `{kind, schema, name}` resolved by parsing the function body via the PostgreSQL AST (`kind` is one of `function`, `table`, `view`, `materialized_view`, `sequence`, or `foreign_table`; does not track dynamically constructed queries like `EXECUTE '...' || var`). For other languages `dependencies` is `null`. Returns `null` if the function doesn't exist.
 
 ---
 

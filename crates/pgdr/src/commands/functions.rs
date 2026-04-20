@@ -12,7 +12,7 @@ pub enum Command {
         #[arg(long, default_value = "public")]
         schema: String,
     },
-    Deps {
+    View {
         function: String,
         #[arg(long, default_value = "public")]
         schema: String,
@@ -22,7 +22,7 @@ pub enum Command {
 pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::List { schema } => list(client, &schema).await,
-        Command::Deps { function, schema } => deps(client, &function, &schema).await,
+        Command::View { function, schema } => view(client, &function, &schema).await,
     }
 }
 
@@ -40,13 +40,32 @@ async fn list(client: &Client, schema: &str) -> Result<Value> {
     Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn deps(client: &Client, function: &str, schema: &str) -> Result<Value> {
+async fn view(client: &Client, function: &str, schema: &str) -> Result<Value> {
     let row = client
         .query_opt(
-            "SELECT p.prosrc, l.lanname, pg_get_functiondef(p.oid) AS def \
+            "SELECT \
+             p.proname AS name, \
+             n.nspname AS schema, \
+             CASE p.prokind WHEN 'f' THEN 'function' WHEN 'p' THEN 'procedure' \
+                            WHEN 'a' THEN 'aggregate' WHEN 'w' THEN 'window' \
+                            ELSE p.prokind::text END AS kind, \
+             l.lanname AS language, \
+             pg_get_function_result(p.oid) AS return_type, \
+             pg_get_function_arguments(p.oid) AS arguments, \
+             CASE p.provolatile WHEN 'i' THEN 'immutable' WHEN 's' THEN 'stable' \
+                                WHEN 'v' THEN 'volatile' END AS volatility, \
+             p.proisstrict AS strict, \
+             p.prosecdef AS security_definer, \
+             CASE p.proparallel WHEN 's' THEN 'safe' WHEN 'r' THEN 'restricted' \
+                                WHEN 'u' THEN 'unsafe' END AS parallel, \
+             o.rolname AS owner, \
+             p.prosrc AS source, \
+             CASE WHEN p.prokind IN ('f', 'p') \
+                  THEN pg_get_functiondef(p.oid) END AS definition \
              FROM pg_proc p \
              JOIN pg_namespace n ON n.oid = p.pronamespace \
              JOIN pg_language l ON l.oid = p.prolang \
+             JOIN pg_roles o ON o.oid = p.proowner \
              WHERE p.proname = $1 AND n.nspname = $2 \
              LIMIT 1",
             &[&function, &schema],
@@ -54,15 +73,44 @@ async fn deps(client: &Client, function: &str, schema: &str) -> Result<Value> {
         .await?;
 
     let Some(row) = row else {
-        return Ok(Value::Array(vec![]));
+        return Ok(Value::Null);
     };
 
-    let prosrc: &str = row.get("prosrc");
-    let lanname: &str = row.get("lanname");
-    let funcdef: &str = row.get("def");
+    let language: String = row.get("language");
+    let source: Option<String> = row.get("source");
+    let definition: Option<String> = row.get("definition");
 
-    let (table_names, fn_names) = extract_refs(prosrc, lanname, funcdef)?;
+    let dependencies = match (language.as_str(), source.as_deref(), definition.as_deref()) {
+        ("sql", Some(src), Some(def)) => {
+            resolve_deps(client, function, schema, &language, src, def).await?
+        }
+        ("plpgsql", Some(src), Some(def)) => {
+            resolve_deps(client, function, schema, &language, src, def).await?
+        }
+        _ => Value::Null,
+    };
 
+    let mut map = output::rows_to_json(std::slice::from_ref(&row))
+        .into_iter()
+        .next()
+        .and_then(|v| match v {
+            Value::Object(m) => Some(m),
+            _ => None,
+        })
+        .expect("row is object");
+    map.insert("dependencies".into(), dependencies);
+    Ok(Value::Object(map))
+}
+
+async fn resolve_deps(
+    client: &Client,
+    function: &str,
+    schema: &str,
+    language: &str,
+    source: &str,
+    definition: &str,
+) -> Result<Value> {
+    let (table_names, fn_names) = extract_refs(source, language, definition)?;
     if table_names.is_empty() && fn_names.is_empty() {
         return Ok(Value::Array(vec![]));
     }
@@ -99,21 +147,21 @@ async fn deps(client: &Client, function: &str, schema: &str) -> Result<Value> {
 }
 
 fn extract_refs(
-    prosrc: &str,
-    lanname: &str,
-    funcdef: &str,
+    source: &str,
+    language: &str,
+    definition: &str,
 ) -> Result<(BTreeSet<String>, BTreeSet<String>)> {
     let mut tables = BTreeSet::new();
     let mut functions = BTreeSet::new();
 
-    match lanname {
+    match language {
         "sql" => {
-            if let Ok(result) = pg_query::parse(prosrc) {
+            if let Ok(result) = pg_query::parse(source) {
                 parse::collect_from_parse_result(&result, &mut tables, &mut functions);
             }
         }
         _ => {
-            if let Ok(json) = pg_query::parse_plpgsql(funcdef) {
+            if let Ok(json) = pg_query::parse_plpgsql(definition) {
                 let mut queries = Vec::new();
                 parse::collect_plpgsql_queries(&json, &mut queries);
                 for query in &queries {
