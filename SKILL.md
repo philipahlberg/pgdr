@@ -1,6 +1,6 @@
 ---
 name: pgdr
-description: How to use the pgdr CLI — a non-interactive PostgreSQL tool that outputs JSON — for database introspection, schema exploration, and data querying. Use this skill whenever you need to inspect a PostgreSQL database using pgdr: listing tables, describing columns, fetching rows, exploring indexes or constraints, running raw SQL, or checking server metadata. Trigger this skill any time pgdr is mentioned or the user asks you to query/inspect a Postgres database in this project.
+description: "How to use the pgdr CLI — a non-interactive PostgreSQL tool that outputs JSON — for database introspection, schema exploration, and data querying. Use this skill whenever you need to inspect a PostgreSQL database using pgdr: listing tables, describing columns, fetching rows, exploring indexes or constraints, running raw SQL, or checking server metadata. Trigger this skill any time pgdr is mentioned or the user asks you to query/inspect a Postgres database in this project."
 ---
 
 # pgdr CLI
