@@ -59,9 +59,11 @@ Default schema is `public` for all three.
 
 ```sh
 pgdr views list [--schema <schema>]
+pgdr views view <view> [--schema <schema>]
 ```
 
-Lists views with their SQL definitions.
+- `list` — views with their SQL definitions
+- `view <view>` — a single object with `name`, `schema`, `kind` (`view`/`materialized_view`), `owner`, `definition`, `is_updatable` (null for matviews), `check_option` (null for matviews or views without one), `columns` (array of `{name, type, nullable}`), and `dependencies` (array of `{kind, schema, name}` resolved by parsing the view definition via the PostgreSQL AST). Returns `null` if the view doesn't exist.
 
 ---
 
