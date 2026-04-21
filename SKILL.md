@@ -23,11 +23,13 @@ All commands below assume this is set.
 
 ```sh
 pgdr databases list
-pgdr databases view <database>
+pgdr databases inspect <database>
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — all databases with `name`, `encoding`, `collation`, and `ctype`
-- `view <database>` — a single object with `name`, `owner`, `encoding`, `collation`, `ctype`, `is_template`, `allow_connections`, `connection_limit`, `tablespace`, `size_bytes` (null if the current role lacks `CONNECT` on the target database), and `config` (per-database GUC settings set via `ALTER DATABASE ... SET`, as a key/value object, or `null` if none). Returns `null` if the database doesn't exist.
+- `inspect <database>` — a single object with `name`, `owner`, `encoding`, `collation`, `ctype`, `is_template`, `allow_connections`, `connection_limit`, `tablespace`, `size_bytes` (null if the current role lacks `CONNECT` on the target database), and `config` (per-database GUC settings set via `ALTER DATABASE ... SET`, as a key/value object, or `null` if none). Returns `null` if the database doesn't exist.
 
 ---
 
@@ -35,11 +37,13 @@ pgdr databases view <database>
 
 ```sh
 pgdr schemas list
-pgdr schemas view <schema>
+pgdr schemas inspect <schema>
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — all schemas with `name` and `owner`
-- `view <schema>` — a single object with `name`, `owner`, `comment` (from `obj_description`, or `null`), and `objects` (counts of contained `tables`, `views`, `materialized_views`, `foreign_tables`, `sequences`, `functions`). Returns `null` if the schema doesn't exist.
+- `inspect <schema>` — a single object with `name`, `owner`, `comment` (from `obj_description`, or `null`), and `objects` (counts of contained `tables`, `views`, `materialized_views`, `foreign_tables`, `sequences`, `functions`). Returns `null` if the schema doesn't exist.
 
 ---
 
@@ -47,12 +51,14 @@ pgdr schemas view <schema>
 
 ```sh
 pgdr tables list [--schema <schema>]
-pgdr tables view <table> [--schema <schema>]
+pgdr tables inspect <table> [--schema <schema>]
 pgdr tables get <table> [--schema <schema>] [--limit <n>]
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — table names and types in the schema
-- `view` — columns with `name`, `type`, `nullable`, `default`, `max_length`, `numeric_precision`, `numeric_scale`
+- `inspect` — columns with `name`, `type`, `nullable`, `default`, `max_length`, `numeric_precision`, `numeric_scale`
 - `get` — actual rows as JSON; use `--limit` to cap the number returned
 
 Default schema is `public` for all three.
@@ -63,11 +69,13 @@ Default schema is `public` for all three.
 
 ```sh
 pgdr views list [--schema <schema>]
-pgdr views view <view> [--schema <schema>]
+pgdr views inspect <view> [--schema <schema>]
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — views with their SQL definitions
-- `view <view>` — a single object with `name`, `schema`, `kind` (`view`/`materialized_view`), `owner`, `definition`, `is_updatable` (null for matviews), `check_option` (null for matviews or views without one), `columns` (array of `{name, type, nullable}`), and `dependencies` (array of `{kind, schema, name}` resolved by parsing the view definition via the PostgreSQL AST). Returns `null` if the view doesn't exist.
+- `inspect <view>` — a single object with `name`, `schema`, `kind` (`view`/`materialized_view`), `owner`, `definition`, `is_updatable` (null for matviews), `check_option` (null for matviews or views without one), `columns` (array of `{name, type, nullable}`), and `dependencies` (array of `{kind, schema, name}` resolved by parsing the view definition via the PostgreSQL AST). Returns `null` if the view doesn't exist.
 
 ---
 
@@ -75,11 +83,13 @@ pgdr views view <view> [--schema <schema>]
 
 ```sh
 pgdr sequences list [--schema <schema>]
-pgdr sequences view <sequence> [--schema <schema>]
+pgdr sequences inspect <sequence> [--schema <schema>]
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — sequences with `name`, data type, min/max values, and increment
-- `view <sequence>` — a single object with `name`, `schema`, `owner`, `data_type`, `start_value`, `minimum_value`, `maximum_value`, `increment`, `cycle`, `cache`, `last_value`, `is_called`, and `owned_by` (`{schema, table, column}` if the sequence backs an identity/serial column, otherwise `null`). Returns `null` if the sequence doesn't exist.
+- `inspect <sequence>` — a single object with `name`, `schema`, `owner`, `data_type`, `start_value`, `minimum_value`, `maximum_value`, `increment`, `cycle`, `cache`, `last_value`, `is_called`, and `owned_by` (`{schema, table, column}` if the sequence backs an identity/serial column, otherwise `null`). Returns `null` if the sequence doesn't exist.
 
 ---
 
@@ -87,11 +97,13 @@ pgdr sequences view <sequence> [--schema <schema>]
 
 ```sh
 pgdr functions list [--schema <schema>]
-pgdr functions view <function> [--schema <schema>]
+pgdr functions inspect <function> [--schema <schema>]
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — functions and procedures with `name`, `type`, `return_type`, and `language`
-- `view <function>` — a single object with `name`, `schema`, `kind` (`function`/`procedure`/`aggregate`/`window`), `language`, `return_type`, `arguments`, `volatility`, `strict`, `security_definer`, `parallel`, `owner`, `source`, `definition`, and `dependencies`. For SQL- and PL/pgSQL-language functions, `dependencies` is an array of `{kind, schema, name}` resolved by parsing the function body via the PostgreSQL AST (`kind` is one of `function`, `table`, `view`, `materialized_view`, `sequence`, or `foreign_table`; does not track dynamically constructed queries like `EXECUTE '...' || var`). For other languages `dependencies` is `null`. Returns `null` if the function doesn't exist.
+- `inspect <function>` — a single object with `name`, `schema`, `kind` (`function`/`procedure`/`aggregate`/`window`), `language`, `return_type`, `arguments`, `volatility`, `strict`, `security_definer`, `parallel`, `owner`, `source`, `definition`, and `dependencies`. For SQL- and PL/pgSQL-language functions, `dependencies` is an array of `{kind, schema, name}` resolved by parsing the function body via the PostgreSQL AST (`kind` is one of `function`, `table`, `view`, `materialized_view`, `sequence`, or `foreign_table`; does not track dynamically constructed queries like `EXECUTE '...' || var`). For other languages `dependencies` is `null`. Returns `null` if the function doesn't exist.
 
 ---
 
@@ -99,11 +111,13 @@ pgdr functions view <function> [--schema <schema>]
 
 ```sh
 pgdr indices list [--schema <schema>] [--table <table>]
-pgdr indices view <index> [--schema <schema>]
+pgdr indices inspect <index> [--schema <schema>]
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — indices with `name`, `table`, `unique`, `primary`, `method`, and `definition`. Use `--table` to filter to a specific table.
-- `view <index>` — a single object with `name`, `schema`, `table`, `table_schema`, `owner`, `method`, `unique`, `primary`, `exclusion`, `valid`, `ready`, `live`, `num_columns`, `num_key_columns`, `definition`, `predicate` (partial-index `WHERE` expression, or `null`), `size_bytes` (null if the current role lacks `USAGE` on the schema), and `columns` (array of `{name, type, expression, is_key}` — `name`/`type` are `null` for expression columns; `is_key` is `false` for `INCLUDE` columns). Returns `null` if the index doesn't exist.
+- `inspect <index>` — a single object with `name`, `schema`, `table`, `table_schema`, `owner`, `method`, `unique`, `primary`, `exclusion`, `valid`, `ready`, `live`, `num_columns`, `num_key_columns`, `definition`, `predicate` (partial-index `WHERE` expression, or `null`), `size_bytes` (null if the current role lacks `USAGE` on the schema), and `columns` (array of `{name, type, expression, is_key}` — `name`/`type` are `null` for expression columns; `is_key` is `false` for `INCLUDE` columns). Returns `null` if the index doesn't exist.
 
 ---
 
@@ -111,11 +125,13 @@ pgdr indices view <index> [--schema <schema>]
 
 ```sh
 pgdr constraints list [--schema <schema>] [--table <table>]
-pgdr constraints view <constraint> [--schema <schema>] [--table <table>]
+pgdr constraints inspect <constraint> [--schema <schema>] [--table <table>]
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — constraints with `name`, `table`, `type`, `update_rule`, `delete_rule`, `foreign_table`, and `foreign_column`. Use `--table` to filter.
-- `view <constraint>` — a single object with `name`, `schema`, `table`, `table_schema`, `type` (`CHECK`/`FOREIGN KEY`/`PRIMARY KEY`/`UNIQUE`/`EXCLUSION`/`TRIGGER`/`NOT NULL`), `definition` (from `pg_get_constraintdef`), `deferrable`, `deferred`, `validated`, `columns` (array of column names on the local table), `foreign_schema`/`foreign_table`/`foreign_columns`/`update_rule`/`delete_rule`/`match_type` (populated for foreign keys, otherwise `null`), and `check_clause` (the `CHECK` expression, or `null`). Constraint names aren't unique across tables in a schema; use `--table` to disambiguate. Returns `null` if not found.
+- `inspect <constraint>` — a single object with `name`, `schema`, `table`, `table_schema`, `type` (`CHECK`/`FOREIGN KEY`/`PRIMARY KEY`/`UNIQUE`/`EXCLUSION`/`TRIGGER`/`NOT NULL`), `definition` (from `pg_get_constraintdef`), `deferrable`, `deferred`, `validated`, `columns` (array of column names on the local table), `foreign_schema`/`foreign_table`/`foreign_columns`/`update_rule`/`delete_rule`/`match_type` (populated for foreign keys, otherwise `null`), and `check_clause` (the `CHECK` expression, or `null`). Constraint names aren't unique across tables in a schema; use `--table` to disambiguate. Returns `null` if not found.
 
 ---
 
@@ -151,11 +167,13 @@ pgdr server extensions
 
 ```sh
 pgdr roles list
-pgdr roles view <role>
+pgdr roles inspect <role>
 ```
 
+`list` has alias `ls`; `inspect` has alias `i`.
+
 - `list` — all roles with `name`, `superuser`, `create_db`, `create_role`, `can_login`, `replication`, `connection_limit`
-- `view <role>` — a single object with the role's attributes (`superuser`, `inherit`, `create_role`, `create_db`, `can_login`, `replication`, `bypass_rls`, `connection_limit`, `valid_until`), role-level `config` settings as a key/value object (or `null`), `member_of` (roles this role belongs to), and `members` (roles that belong to this role). Returns `null` if the role doesn't exist.
+- `inspect <role>` — a single object with the role's attributes (`superuser`, `inherit`, `create_role`, `create_db`, `can_login`, `replication`, `bypass_rls`, `connection_limit`, `valid_until`), role-level `config` settings as a key/value object (or `null`), `member_of` (roles this role belongs to), and `members` (roles that belong to this role). Returns `null` if the role doesn't exist.
 
 ---
 
@@ -241,7 +259,7 @@ All output is pretty-printed JSON. Pipe to `jq` for filtering and transformation
 
 ```sh
 # Get all nullable columns in the users table
-pgdr tables view users | jq '[.[] | select(.nullable == true) | .name]'
+pgdr tables inspect users | jq '[.[] | select(.nullable == true) | .name]'
 
 # Count tables in a schema
 pgdr tables list | jq 'length'
@@ -259,7 +277,7 @@ pgdr server settings | jq '.[] | select(.name == "max_connections") | .setting'
 ```sh
 pgdr schemas list
 pgdr tables list
-pgdr tables view <interesting_table>
+pgdr tables inspect <interesting_table>
 pgdr constraints list --table <interesting_table>
 pgdr indices list --table <interesting_table>
 ```
@@ -272,5 +290,5 @@ pgdr tables get users --limit 5
 **Use a non-public schema:**
 ```sh
 pgdr tables list --schema analytics
-pgdr tables view events --schema analytics
+pgdr tables inspect events --schema analytics
 ```

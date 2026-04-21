@@ -7,14 +7,16 @@ use tokio_postgres::Client;
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    #[command(visible_alias = "ls")]
     List,
-    View { database: String },
+    #[command(visible_alias = "i")]
+    Inspect { database: String },
 }
 
 pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::List => list(client).await,
-        Command::View { database } => view(client, &database).await,
+        Command::Inspect { database } => inspect(client, &database).await,
     }
 }
 
@@ -32,7 +34,7 @@ async fn list(client: &Client) -> Result<Value> {
     Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn view(client: &Client, database: &str) -> Result<Value> {
+async fn inspect(client: &Client, database: &str) -> Result<Value> {
     let row = client
         .query_opt(
             "SELECT d.datname AS name, \

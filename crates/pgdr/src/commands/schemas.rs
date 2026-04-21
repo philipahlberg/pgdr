@@ -7,14 +7,16 @@ use tokio_postgres::Client;
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    #[command(visible_alias = "ls")]
     List,
-    View { schema: String },
+    #[command(visible_alias = "i")]
+    Inspect { schema: String },
 }
 
 pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::List => list(client).await,
-        Command::View { schema } => view(client, &schema).await,
+        Command::Inspect { schema } => inspect(client, &schema).await,
     }
 }
 
@@ -30,7 +32,7 @@ async fn list(client: &Client) -> Result<Value> {
     Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn view(client: &Client, schema: &str) -> Result<Value> {
+async fn inspect(client: &Client, schema: &str) -> Result<Value> {
     let row = client
         .query_opt(
             "SELECT n.nspname AS name, \

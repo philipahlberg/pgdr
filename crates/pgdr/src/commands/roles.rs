@@ -8,14 +8,16 @@ use tokio_postgres::Client;
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    #[command(visible_alias = "ls")]
     List,
-    View { role: String },
+    #[command(visible_alias = "i")]
+    Inspect { role: String },
 }
 
 pub async fn run(cmd: Command, client: &Client) -> Result<Value> {
     match cmd {
         Command::List => list(client).await,
-        Command::View { role } => view(client, &role).await,
+        Command::Inspect { role } => inspect(client, &role).await,
     }
 }
 
@@ -34,7 +36,7 @@ async fn list(client: &Client) -> Result<Value> {
     Ok(Value::Array(output::rows_to_json(&rows)))
 }
 
-async fn view(client: &Client, role: &str) -> Result<Value> {
+async fn inspect(client: &Client, role: &str) -> Result<Value> {
     let row = client
         .query_opt(
             "SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole, \
