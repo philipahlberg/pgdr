@@ -81,10 +81,7 @@ async fn view(client: &Client, function: &str, schema: &str) -> Result<Value> {
     let definition: Option<String> = row.get("definition");
 
     let dependencies = match (language.as_str(), source.as_deref(), definition.as_deref()) {
-        ("sql", Some(src), Some(def)) => {
-            resolve_deps(client, function, schema, &language, src, def).await?
-        }
-        ("plpgsql", Some(src), Some(def)) => {
+        ("sql" | "plpgsql", Some(src), Some(def)) => {
             resolve_deps(client, function, schema, &language, src, def).await?
         }
         _ => Value::Null,
