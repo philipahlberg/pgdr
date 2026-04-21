@@ -23,9 +23,11 @@ All commands below assume this is set.
 
 ```sh
 pgdr databases list
+pgdr databases view <database>
 ```
 
-Lists all databases with `name`, `encoding`, `collation`, and `character_type`.
+- `list` — all databases with `name`, `encoding`, `collation`, and `ctype`
+- `view <database>` — a single object with `name`, `owner`, `encoding`, `collation`, `ctype`, `is_template`, `allow_connections`, `connection_limit`, `tablespace`, `size_bytes` (null if the current role lacks `CONNECT` on the target database), and `config` (per-database GUC settings set via `ALTER DATABASE ... SET`, as a key/value object, or `null` if none). Returns `null` if the database doesn't exist.
 
 ---
 
