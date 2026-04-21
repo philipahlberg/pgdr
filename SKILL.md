@@ -35,9 +35,11 @@ pgdr databases view <database>
 
 ```sh
 pgdr schemas list
+pgdr schemas view <schema>
 ```
 
-Lists all schemas with `name` and `owner`.
+- `list` — all schemas with `name` and `owner`
+- `view <schema>` — a single object with `name`, `owner`, `comment` (from `obj_description`, or `null`), and `objects` (counts of contained `tables`, `views`, `materialized_views`, `foreign_tables`, `sequences`, `functions`). Returns `null` if the schema doesn't exist.
 
 ---
 
