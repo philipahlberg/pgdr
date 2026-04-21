@@ -75,9 +75,11 @@ pgdr views view <view> [--schema <schema>]
 
 ```sh
 pgdr sequences list [--schema <schema>]
+pgdr sequences view <sequence> [--schema <schema>]
 ```
 
-Lists sequences with data type, min/max values, and increment.
+- `list` — sequences with `name`, data type, min/max values, and increment
+- `view <sequence>` — a single object with `name`, `schema`, `owner`, `data_type`, `start_value`, `minimum_value`, `maximum_value`, `increment`, `cycle`, `cache`, `last_value`, `is_called`, and `owned_by` (`{schema, table, column}` if the sequence backs an identity/serial column, otherwise `null`). Returns `null` if the sequence doesn't exist.
 
 ---
 
