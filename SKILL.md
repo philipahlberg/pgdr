@@ -111,9 +111,11 @@ pgdr indices view <index> [--schema <schema>]
 
 ```sh
 pgdr constraints list [--schema <schema>] [--table <table>]
+pgdr constraints view <constraint> [--schema <schema>] [--table <table>]
 ```
 
-Lists constraints with `name`, `table`, `type`, `update_rule`, `delete_rule`, `foreign_table`, and `foreign_column`. Use `--table` to filter.
+- `list` — constraints with `name`, `table`, `type`, `update_rule`, `delete_rule`, `foreign_table`, and `foreign_column`. Use `--table` to filter.
+- `view <constraint>` — a single object with `name`, `schema`, `table`, `table_schema`, `type` (`CHECK`/`FOREIGN KEY`/`PRIMARY KEY`/`UNIQUE`/`EXCLUSION`/`TRIGGER`/`NOT NULL`), `definition` (from `pg_get_constraintdef`), `deferrable`, `deferred`, `validated`, `columns` (array of column names on the local table), `foreign_schema`/`foreign_table`/`foreign_columns`/`update_rule`/`delete_rule`/`match_type` (populated for foreign keys, otherwise `null`), and `check_clause` (the `CHECK` expression, or `null`). Constraint names aren't unique across tables in a schema; use `--table` to disambiguate. Returns `null` if not found.
 
 ---
 
