@@ -99,9 +99,11 @@ pgdr functions view <function> [--schema <schema>]
 
 ```sh
 pgdr indices list [--schema <schema>] [--table <table>]
+pgdr indices view <index> [--schema <schema>]
 ```
 
-Lists indices with `name`, `table`, `unique`, `primary`, `method`, and `definition`. Use `--table` to filter to a specific table.
+- `list` — indices with `name`, `table`, `unique`, `primary`, `method`, and `definition`. Use `--table` to filter to a specific table.
+- `view <index>` — a single object with `name`, `schema`, `table`, `table_schema`, `owner`, `method`, `unique`, `primary`, `exclusion`, `valid`, `ready`, `live`, `num_columns`, `num_key_columns`, `definition`, `predicate` (partial-index `WHERE` expression, or `null`), `size_bytes` (null if the current role lacks `USAGE` on the schema), and `columns` (array of `{name, type, expression, is_key}` — `name`/`type` are `null` for expression columns; `is_key` is `false` for `INCLUDE` columns). Returns `null` if the index doesn't exist.
 
 ---
 
