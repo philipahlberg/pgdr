@@ -33,7 +33,7 @@ fn col_to_value(row: &Row, i: usize, ty: &Type) -> Value {
         &Type::UUID => get_val::<uuid::Uuid>(row, i).map(|v| Value::String(v.to_string())),
         &Type::JSON | &Type::JSONB => get_val::<Value>(row, i),
         &Type::TIMESTAMPTZ => get_val::<time::OffsetDateTime>(row, i)
-            .map(|v| v.format(&Rfc3339).map(Value::String).unwrap_or(Value::Null)),
+            .map(|v| v.format(&Rfc3339).map_or(Value::Null, Value::String)),
         &Type::TIMESTAMP => {
             get_val::<time::PrimitiveDateTime>(row, i).map(|v| Value::String(v.to_string()))
         }
